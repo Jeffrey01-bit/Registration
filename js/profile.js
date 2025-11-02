@@ -1,234 +1,316 @@
-$(document).ready(function () {
-  loadProfile();
+// ===== PROFILE PAGE FUNCTIONALITY =====
 
-  $("#logoutBtn").click(function () {
-    localStorage.removeItem('sessionToken');
-    localStorage.removeItem('user');
-    window.location.href = "index.html";
-  });
+class ProfileManager {
+    constructor() {
+        this.photoAction = null;
+        this.selectedFile = null;
+        this.isEditing = false;
+        this.init();
+    }
 
-  $(document).on('submit', '#profileForm', function (e) {
-    e.preventDefault();
-    
-    const token = localStorage.getItem('sessionToken');
-    const firstName = $("#firstName").val() || '';
-    const lastName = $("#lastName").val() || '';
-    const age = $("#age").val() || null;
-    const dob = $("#dob").val() || '';
-    const gender = $("#gender").val() || '';
-    const contact = $("#contact").val() || '';
-    const address = $("#address").val() || '';
-    const city = $("#city").val() || '';
-    const state = $("#state").val() || '';
-    const zipCode = $("#zipCode").val() || '';
-    const occupation = $("#occupation").val() || '';
-    const company = $("#company").val() || '';
-    
-    console.log('Form data:', {
-      firstName, lastName, age, dob, gender, contact, 
-      address, city, state, zipCode, occupation, company
-    });
-    
-    $.ajax({
-      url: "php/basic_profile.php",
-      method: "POST",
-      dataType: "json",
-      data: { 
-        token: token, firstName: firstName, lastName: lastName, age: age, 
-        dob: dob, gender: gender, contact: contact, address: address, 
-        city: city, state: state, zipCode: zipCode, occupation: occupation, company: company 
-      },
-      success: function (response) {
-        console.log('Profile update response:', response);
-        if (response.status === "success") {
-          // Upload photo if one was selected
-          const photoFile = $("#photo")[0].files[0];
-          if (photoFile) {
-            const formData = new FormData();
-            formData.append('photo', photoFile);
-            formData.append('token', localStorage.getItem('sessionToken'));
-            
-            $.ajax({
-              url: 'php/upload_photo.php',
-              method: 'POST',
-              data: formData,
-              processData: false,
-              contentType: false,
-              success: function(photoResponse) {
-                if (photoResponse.status === 'success') {
-                  showMessage("Profile and photo updated successfully!", "success");
-                } else {
-                  showMessage("Profile updated, but photo upload failed", "warning");
+    // ===== INITIALIZATION =====
+    init() {
+        this.loadProfile();
+        this.bindEvents();
+    }
+
+    // ===== EVENT BINDINGS =====
+    bindEvents() {
+        // Logout functionality
+        $("#logoutBtn, #logoutDropdownBtn").on('click', () => {
+            window.location.href = "login.html";
+        });
+
+        // Profile navigation
+        $("#myProfileBtn").on('click', (e) => {
+            e.preventDefault();
+            window.scrollTo(0, 0);
+        });
+
+        // Dropdown functionality
+        this.bindDropdownEvents();
+        
+        // Photo functionality
+        this.bindPhotoEvents();
+        
+        // Edit functionality
+        this.bindEditEvents();
+    }
+
+    // ===== DROPDOWN EVENTS =====
+    bindDropdownEvents() {
+        $("#headerAvatar").on('click', (e) => {
+            e.stopPropagation();
+            $(".dropdown-menu").toggleClass("show");
+        });
+
+        $(document).on('click', () => {
+            $(".dropdown-menu").removeClass("show");
+        });
+    }
+
+    // ===== PHOTO EVENTS =====
+    bindPhotoEvents() {
+        // Photo upload trigger
+        $("#addPhotoBtn").on('click', () => {
+            $("#photoInput").click();
+        });
+
+        // Photo selection
+        $("#photoInput").on('change', (e) => {
+            this.handlePhotoSelection(e.target.files[0]);
+        });
+
+        // Photo hover for remove
+        $("#profileAvatar").hover(
+            () => {
+                if (this.isEditing && $("#profileAvatar").find('img').length > 0) {
+                    $("#removePhotoBtn").show();
                 }
-                loadProfile();
-                $("#updateProfileModal").fadeOut();
-              },
-              error: function() {
-                showMessage("Profile updated, but photo upload failed", "warning");
-                loadProfile();
-                $("#updateProfileModal").fadeOut();
-              }
-            });
-          } else {
-            showMessage("Profile updated successfully!", "success");
-            loadProfile();
-            $("#updateProfileModal").fadeOut();
-          }
+            },
+            () => {
+                $("#removePhotoBtn").hide();
+            }
+        );
+
+        // Photo removal
+        $("#removePhotoBtn").on('click', () => {
+            this.handlePhotoRemoval();
+        });
+    }
+
+    // ===== EDIT EVENTS =====
+    bindEditEvents() {
+        $("#editBtn").on('click', () => {
+            if (!this.isEditing) {
+                this.enableEditMode();
+            } else {
+                this.saveProfile();
+            }
+        });
+    }
+
+    // ===== PROFILE LOADING =====
+    loadProfile() {
+        $.ajax({
+            url: "php/db_profile.php",
+            method: "GET",
+            dataType: "json",
+            success: (response) => {
+                try {
+                    if (response.status === "success") {
+                        this.displayProfile(response.user);
+                    } else {
+                        console.log('Profile load failed:', response.message);
+                        window.location.href = "login.html";
+                    }
+                } catch (e) {
+                    console.error('Profile display error:', e);
+                }
+            },
+            error: (xhr, status, error) => {
+                console.error('AJAX error:', error, xhr.responseText);
+                window.location.href = "login.html";
+            }
+        });
+    }
+
+    // ===== PROFILE DISPLAY =====
+    displayProfile(user) {
+        // Update header
+        $("#welcomeText").text(`Welcome, ${user.username}`);
+        $("#profileName").text(`${user.first_name} ${user.last_name}`.trim() || user.username);
+        $("#profileEmail").text(user.email);
+        $("#emailAddress").text(user.email);
+        
+        // Populate form fields
+        this.populateFormFields(user);
+        
+        // Update avatars
+        this.updateAvatars(user);
+    }
+
+    // ===== FORM POPULATION =====
+    populateFormFields(user) {
+        const fields = [
+            'userId', 'username', 'firstName', 'lastName', 'email',
+            'age', 'dob', 'contact', 'gender', 'occupation',
+            'address', 'city', 'state', 'zipCode'
+        ];
+
+        fields.forEach(field => {
+            const value = user[field === 'userId' ? 'id' : 
+                              field === 'firstName' ? 'first_name' :
+                              field === 'lastName' ? 'last_name' :
+                              field === 'zipCode' ? 'zip_code' : field] || '';
+            $(`#${field}`).val(value);
+        });
+    }
+
+    // ===== AVATAR UPDATES =====
+    updateAvatars(user) {
+        if (user.photo && user.photo.trim() !== '') {
+            this.loadPhotoWithFallback(user.photo, user.username);
         } else {
-          showMessage(response.message || "Update failed", "danger");
+            this.showInitialAvatars(user.username);
         }
-      },
-      error: function () {
-        showMessage("Server error. Please try later.", "danger");
-      }
-    });
-  });
-
-  function loadProfile() {
-    const token = localStorage.getItem('sessionToken');
-    const user = localStorage.getItem('user');
-    
-    if (!token || !user) {
-      window.location.href = "login.html";
-      return;
     }
-    
-    // Use stored user data instead of making AJAX call
-    try {
-      const userData = JSON.parse(user);
-      displayProfile(userData);
-    } catch (e) {
-      window.location.href = "login.html";
+
+    loadPhotoWithFallback(photoPath, username) {
+        const img = new Image();
+        img.onload = () => {
+            $("#headerAvatar").html(`<img src="${photoPath}" alt="Profile" class="avatar-img">`);
+            $("#profileAvatar").html(`<img src="${photoPath}" alt="Profile" class="avatar-img">`);
+        };
+        img.onerror = () => {
+            this.showInitialAvatars(username);
+        };
+        img.src = photoPath;
     }
-  }
 
-  function displayProfile(user) {
-    const safeUsername = $('<div>').text(user.username || '').html();
-    const safeEmail = $('<div>').text(user.email || '').html();
-    const safeFirstName = $('<div>').text(user.first_name || '').html();
-    const safeLastName = $('<div>').text(user.last_name || '').html();
-    const safeContact = $('<div>').text(user.contact || '').html();
-    const safeCity = $('<div>').text(user.city || '').html();
-    const safeGender = $('<div>').text(user.gender || '').html();
-    const safeDob = $('<div>').text(user.dob || '').html();
-    const safeOccupation = $('<div>').text(user.occupation || '').html();
-    const safeCompany = $('<div>').text(user.company || '').html();
-    const safePhoto = $('<div>').text(user.photo || '').html();
-    
-    const profileImage = user.photo ? 
-      `<img src="uploads/${safePhoto}" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">` :
-      `<div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 150px; height: 150px; font-size: 3rem;">${safeUsername.charAt(0).toUpperCase()}</div>`;
-    
-    // Left sidebar with image
-    $("#profileImageSection").html(`
-      ${profileImage}
-      <h5 class="mt-3 mb-1">${(safeFirstName + ' ' + safeLastName).trim() || safeUsername}</h5>
-      <p class="text-muted small mb-0">${safeOccupation || 'User'}</p>
-      <p class="text-muted small">${safeCity || 'Location not set'}</p>
-    `);
-    
-    // Right section with details
-    $("#userInfo").html(`
-      <div class="mb-4">
-        <h6 class="text-success mb-3">Contact Information</h6>
-        <div class="row mb-2">
-          <div class="col-3"><strong>Phone:</strong></div>
-          <div class="col-9">${safeContact || 'Not provided'}</div>
-        </div>
-        <div class="row mb-2">
-          <div class="col-3"><strong>Email:</strong></div>
-          <div class="col-9">${safeEmail}</div>
-        </div>
-        <div class="row mb-2">
-          <div class="col-3"><strong>Address:</strong></div>
-          <div class="col-9">${user.address || 'Not provided'}</div>
-        </div>
-      </div>
-      
-      <div class="mb-4">
-        <h6 class="text-success mb-3">Basic Information</h6>
-        <div class="row mb-2">
-          <div class="col-3"><strong>Birthday:</strong></div>
-          <div class="col-9">${safeDob || 'Not provided'}</div>
-        </div>
-        <div class="row mb-2">
-          <div class="col-3"><strong>Gender:</strong></div>
-          <div class="col-9">${safeGender || 'Not provided'}</div>
-        </div>
-        <div class="row mb-2">
-          <div class="col-3"><strong>Age:</strong></div>
-          <div class="col-9">${user.age || 'Not provided'}</div>
-        </div>
-      </div>
-      
-      <div class="mb-4">
-        <h6 class="text-success mb-3">Professional</h6>
-        <div class="row mb-2">
-          <div class="col-3"><strong>Occupation:</strong></div>
-          <div class="col-9">${safeOccupation || 'Not provided'}</div>
-        </div>
-        <div class="row mb-2">
-          <div class="col-3"><strong>Company:</strong></div>
-          <div class="col-9">${safeCompany || 'Not provided'}</div>
-        </div>
-        <div class="text-start mt-5">
-          <button id="showUpdateForm" class="btn btn-success">Update Profile</button>
-        </div>
-      </div>
-    `);
-    
-    if (user.first_name) $("#firstName").val(user.first_name);
-    if (user.last_name) $("#lastName").val(user.last_name);
-    if (user.age) $("#age").val(user.age);
-    if (user.dob) $("#dob").val(user.dob);
-    if (user.gender) $("#gender").val(user.gender);
-    if (user.contact) $("#contact").val(user.contact);
-    if (user.address) $("#address").val(user.address);
-    if (user.city) $("#city").val(user.city);
-    if (user.state) $("#state").val(user.state);
-    if (user.zip_code) $("#zipCode").val(user.zip_code);
-    if (user.occupation) $("#occupation").val(user.occupation);
-    if (user.company) $("#company").val(user.company);
-    
-    if (user.photo) {
-      $("#photoPreview").html(`<img src="uploads/${user.photo}" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">`);
+    showInitialAvatars(username) {
+        const initial = username.charAt(0).toUpperCase();
+        $("#headerAvatar").html(`<div style="width: 40px; height: 40px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">${initial}</div>`);
+        $("#profileAvatar").html(`<div style="width: 80px; height: 80px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px;">${initial}</div>`);
     }
-  }
-  
-  // Photo upload preview
-  $("#photo").change(function() {
-    const file = this.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        $("#photoPreview").html(`<img src="${e.target.result}" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">`);
-      };
-      reader.readAsDataURL(file);
-      
-      // Just show preview, don't upload yet
-      // Photo will be uploaded when form is submitted
+
+    // ===== PHOTO HANDLING =====
+    handlePhotoSelection(file) {
+        if (file) {
+            this.selectedFile = file;
+            this.photoAction = 'upload';
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                $("#profileAvatar").html(`<img src="${e.target.result}" alt="Profile" class="avatar-img">`);
+            };
+            reader.readAsDataURL(file);
+        }
     }
-  });
 
-  // Show/hide modal (using event delegation for dynamically created button)
-  $(document).on('click', '#showUpdateForm', function() {
-    $("#updateProfileModal").fadeIn();
-  });
-
-  $("#discardBtn").click(function() {
-    $("#updateProfileModal").fadeOut();
-    $("#message").empty();
-  });
-
-  // Close modal when clicking outside
-  $("#updateProfileModal").click(function(e) {
-    if (e.target === this) {
-      $(this).fadeOut();
-      $("#message").empty();
+    handlePhotoRemoval() {
+        const initial = $("#username").val().charAt(0).toUpperCase();
+        $("#profileAvatar").html(`<div style="width: 80px; height: 80px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px;">${initial}</div>`);
+        $("#removePhotoBtn").hide();
+        
+        if (!this.selectedFile) {
+            this.photoAction = 'remove';
+        }
     }
-  });
 
-  function showMessage(message, type) {
-    $("#message").html(`<div class="alert alert-${type}">${message}</div>`);
-  }
+    // ===== EDIT MODE =====
+    enableEditMode() {
+        $(".form-input, .form-select").addClass("editable");
+        $(".plus-icon").show();
+        $("#editBtn").text("Save");
+        this.isEditing = true;
+        this.photoAction = null;
+        this.selectedFile = null;
+    }
+
+    // ===== SAVE PROFILE =====
+    saveProfile() {
+        const formData = this.collectFormData();
+        
+        if (this.photoAction === 'upload' && this.selectedFile) {
+            this.uploadPhoto(() => this.updateProfile(formData));
+        } else if (this.photoAction === 'remove') {
+            this.removePhoto(() => this.updateProfile(formData));
+        } else {
+            this.updateProfile(formData);
+        }
+    }
+
+    collectFormData() {
+        return {
+            username: $("#username").val(),
+            firstName: $("#firstName").val(),
+            lastName: $("#lastName").val(),
+            age: $("#age").val(),
+            dob: $("#dob").val(),
+            contact: $("#contact").val(),
+            gender: $("#gender").val(),
+            occupation: $("#occupation").val(),
+            address: $("#address").val(),
+            city: $("#city").val(),
+            state: $("#state").val(),
+            zipCode: $("#zipCode").val()
+        };
+    }
+
+    // ===== PHOTO OPERATIONS =====
+    uploadPhoto(callback) {
+        const photoFormData = new FormData();
+        photoFormData.append('photo', this.selectedFile);
+        
+        $.ajax({
+            url: 'php/upload_photo.php',
+            method: 'POST',
+            data: photoFormData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: (response) => {
+                if (response.status === 'success') {
+                    $("#headerAvatar").html(`<img src="${response.photo_path}" alt="Profile" class="avatar-img">`);
+                }
+                callback();
+            },
+            error: callback
+        });
+    }
+
+    removePhoto(callback) {
+        $.ajax({
+            url: "php/remove_photo.php",
+            method: "POST",
+            dataType: "json",
+            success: (response) => {
+                if (response.status === 'success') {
+                    const initial = $("#username").val().charAt(0).toUpperCase();
+                    $("#headerAvatar").html(`<div style="width: 40px; height: 40px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">${initial}</div>`);
+                }
+                callback();
+            },
+            error: callback
+        });
+    }
+
+    // ===== PROFILE UPDATE =====
+    updateProfile(formData) {
+        $.ajax({
+            url: "php/update_profile.php",
+            method: "POST",
+            data: formData,
+            dataType: "json",
+            success: (response) => {
+                if (response.status === 'success') {
+                    this.exitEditMode();
+                    this.updateDisplayName();
+                }
+            },
+            error: () => {
+                this.exitEditMode();
+            }
+        });
+    }
+
+    exitEditMode() {
+        $(".form-input, .form-select").removeClass("editable");
+        $(".plus-icon").hide();
+        $("#editBtn").text("Edit");
+        this.isEditing = false;
+        this.photoAction = null;
+        this.selectedFile = null;
+    }
+
+    updateDisplayName() {
+        const fullName = `${$("#firstName").val()} ${$("#lastName").val()}`.trim();
+        $("#profileName").text(fullName || $("#username").val());
+    }
+}
+
+// ===== INITIALIZATION =====
+$(document).ready(() => {
+    new ProfileManager();
 });

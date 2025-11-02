@@ -3,7 +3,7 @@ session_start();
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['status' => 'error', 'message' => 'Not logged in', 'session' => $_SESSION]);
+    echo json_encode(['status' => 'error', 'message' => 'Not logged in']);
     exit;
 }
 
