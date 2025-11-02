@@ -36,7 +36,7 @@ $(document).ready(function () {
     }
 
     $.ajax({
-      url: "php/basic_register.php",
+      url: "php/mysql_register.php",
       method: "POST",
       dataType: "json",
       data: {

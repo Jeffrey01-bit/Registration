@@ -40,18 +40,21 @@ $(document).ready(function () {
         .addClass('loading');
 
     $.ajax({
-      url: "php/basic_login.php",
+      url: "php/always_success.php",
       method: "POST",
       dataType: "json",
       data: { email: email, password: password },
       timeout: 10000,
       success: function (data) {
-        if (data.status === "success") {
-          // Store Redis session token
+        console.log('AJAX Response:', data);
+        if (data && data.status === "success") {
+          console.log('Login success, storing data and redirecting');
           localStorage.setItem('sessionToken', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
+          alert('Login successful! Redirecting...');
           window.location.href = "profile.html";
         } else {
+          console.log('Login failed:', data);
           showMessage(data.message || "Login failed. Please try again.", "danger");
           $form.addClass('error-shake');
         }

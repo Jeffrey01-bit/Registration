@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - GUVI Internship</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .header-left h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .date-text {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-container i {
+            position: absolute;
+            left: 15px;
+            color: #6c757d;
+            z-index: 1;
+        }
+        
+        .search-input {
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #e9ecef;
+            border-radius: 25px;
+            background: #f8f9fa;
+            width: 300px;
+            outline: none;
+        }
+        
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            background: #f8f9fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .profile-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+        }
+        
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 150px;
+            z-index: 1000;
+        }
+        
+        .dropdown-menu a {
+            display: block;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .dropdown-menu a:hover {
+            background: #f8f9fa;
+        }
+        
+        .dropdown-menu a:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .dropdown-menu a:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+        }
+        
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .blue-banner {
+            height: 120px;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
+            margin: 0 40px;
+            border-radius: 12px;
+        }
+        
+        .profile-section {
+            padding: 0 40px 40px;
+            margin-top: -60px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .profile-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .profile-avatar-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .profile-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+        }
+        
+        .plus-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: #22c55e;
+            border-radius: 50%;
+            display: none;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .plus-icon i {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            color: white;
+        }
+        
+        .plus-icon:hover {
+            background: #16a34a;
+        }
+        
+        .remove-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: none;
+            cursor: pointer;
+            z-index: 5;
+        }
+        
+        .remove-overlay::after {
+            content: 'Remove';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .profile-details h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .profile-details p {
+            margin: 5px 0 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .edit-btn {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .edit-btn:hover {
+            background: #16a34a;
+        }
+        
+        .form-container {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .col-md-6 {
+            flex: 1;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: #f8f9fa;
+            font-size: 14px;
+            color: #6c757d;
+            outline: none;
+            transition: border-color 0.3s;
+            pointer-events: none;
+        }
+        
+        .form-input.editable, .form-select.editable {
+            pointer-events: auto;
+            border-color: #22c55e;
+            background: white;
+        }
+        
+        .form-input.editable:focus, .form-select.editable:focus {
+            border-color: #16a34a;
+            background: white;
+        }
+        
+        .form-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+        }
+        
+        .email-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+        }
+        
+        .email-section h4 {
+            margin: 0 0 20px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .email-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .email-icon {
+            width: 40px;
+            height: 40px;
+            background: #22c55e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .email-details p {
+            margin: 0;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .email-details small {
+            color: #6c757d;
+        }
+        
+        .add-email-btn {
+            background: none;
+            border: none;
+            color: #22c55e;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0;
+        }
+        
+        .add-email-btn:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .profile-header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-input {
+                width: 200px;
+            }
+            
+            .blue-banner {
+                margin: 0 20px;
+            }
+            
+            .profile-section {
+                padding: 0 20px 20px;
+            }
+            
+            .profile-card {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="profile-header">
+        <div class="header-left">
+            <h2 id="welcomeText">Welcome, Amanda</h2>
+            <p class="date-text">Tue, 07 June 2022</p>
+        </div>
+        <div class="header-right">
+            <div class="profile-dropdown">
+                <div class="profile-avatar-small" id="headerAvatar">
+                    <div style="width: 40px; height: 40px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">U</div>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="#" id="myProfileBtn">My Profile</a>
+                    <a href="#" id="logoutDropdownBtn">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blue Banner -->
+    <div class="blue-banner"></div>
+
+    <!-- Profile Section -->
+    <div class="profile-section">
+        <div class="profile-card">
+            <div class="profile-info">
+                <div class="profile-avatar-container">
+                    <div class="profile-avatar-large" id="profileAvatar">
+                        <div style="width: 80px; height: 80px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px;">U</div>
+                    </div>
+                    <div class="plus-icon" id="addPhotoBtn">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="remove-overlay" id="removePhotoBtn"></div>
+                    <input type="file" id="photoInput" accept="image/*" style="display: none;">
+                </div>
+                <div class="profile-details">
+                    <h3 id="profileName">Alexa Rawles</h3>
+                    <p id="profileEmail">alexarawles@gmail.com</p>
+                </div>
+            </div>
+            <button class="edit-btn" id="editBtn">Edit</button>
+        </div>
+
+        <!-- Form Fields -->
+        <div class="form-container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>User ID</label>
+                        <input type="text" id="userId" placeholder="User ID" class="form-input" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="username" placeholder="Username" class="form-input">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="firstName" placeholder="First Name" class="form-input">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" id="lastName" placeholder="Last Name" class="form-input">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" placeholder="Email Address" class="form-input">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" id="age" placeholder="Age" class="form-input">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" id="dob" class="form-input">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Contact</label>
+                        <input type="tel" id="contact" placeholder="Phone Number" class="form-input">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="gender" class="form-select">
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Occupation</label>
+                        <input type="text" id="occupation" placeholder="Occupation" class="form-input">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" id="address" placeholder="Street Address" class="form-input">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" id="city" placeholder="City" class="form-input">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>State</label>
+                        <input type="text" id="state" placeholder="State" class="form-input">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Zip Code</label>
+                        <input type="text" id="zipCode" placeholder="Zip Code" class="form-input">
+                    </div>
+                </div>
+            </div>
+            
+
+        </div>
+
+        <!-- Email Section -->
+        <div class="email-section">
+            <h4>My email Address</h4>
+            <div class="email-item">
+                <div class="email-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="email-details">
+                    <p id="emailAddress">alexarawles@gmail.com</p>
+                    <small>1 month ago</small>
+                </div>
+            </div>
+            <button class="add-email-btn" id="addEmailBtn">
+                <i class="fas fa-plus"></i> Add Email Address
+            </button>
+        </div>
+    </div>
+
+    <!-- Logout Button (Hidden) -->
+    <button id="logoutBtn" style="display: none;">Logout</button>
+    
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+    $(document).ready(function () {
+        loadProfile();
+        
+        $("#logoutBtn, #logoutDropdownBtn").click(function () {
+            window.location.href = "login.html";
+        });
+        
+        $("#myProfileBtn").click(function (e) {
+            e.preventDefault();
+            // Already on profile page, just scroll to top
+            window.scrollTo(0, 0);
+        });
+        
+        // Toggle dropdown on profile avatar click
+        $("#headerAvatar").click(function (e) {
+            e.stopPropagation();
+            $(".dropdown-menu").toggleClass("show");
+        });
+        
+        // Close dropdown when clicking outside
+        $(document).click(function () {
+            $(".dropdown-menu").removeClass("show");
+        });
+        
+        // Photo upload functionality
+        $("#addPhotoBtn").click(function () {
+            $("#photoInput").click();
+        });
+        
+        let photoAction = null; // 'upload', 'remove', or null
+        let selectedFile = null;
+        
+        $("#photoInput").change(function () {
+            const file = this.files[0];
+            if (file) {
+                selectedFile = file;
+                photoAction = 'upload';
+                console.log('Photo selected for upload, action set to:', photoAction);
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $("#profileAvatar").html(`<img src="${e.target.result}" alt="Profile" class="avatar-img">`);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Profile picture hover functionality
+        $("#profileAvatar").hover(
+            function() {
+                if (isEditing && $(this).find('img').length > 0) {
+                    $("#removePhotoBtn").show();
+                }
+            },
+            function() {
+                $("#removePhotoBtn").hide();
+            }
+        );
+        
+        // Remove photo functionality
+        $("#removePhotoBtn").click(function() {
+            const initial = $("#username").val().charAt(0).toUpperCase();
+            $("#profileAvatar").html(`<div style="width: 80px; height: 80px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px;">${initial}</div>`);
+            $("#removePhotoBtn").hide();
+            // Only set remove action if no file is selected for upload
+            if (!selectedFile) {
+                photoAction = 'remove';
+            }
+            console.log('Remove clicked, action:', photoAction, 'selectedFile:', !!selectedFile);
+        });
+        
+        // Edit button functionality
+        let isEditing = false;
+        $("#editBtn").click(function () {
+            if (!isEditing) {
+                // Enable editing
+                $(".form-input, .form-select").addClass("editable");
+                $(".plus-icon").show();
+                $(this).text("Save");
+                isEditing = true;
+                // Reset photo action when entering edit mode
+                photoAction = null;
+                selectedFile = null;
+            } else {
+                console.log('Save button clicked');
+                // Save to database
+                const formData = {
+                    username: $("#username").val(),
+                    firstName: $("#firstName").val(),
+                    lastName: $("#lastName").val(),
+                    age: $("#age").val(),
+                    dob: $("#dob").val(),
+                    contact: $("#contact").val(),
+                    gender: $("#gender").val(),
+                    occupation: $("#occupation").val(),
+                    address: $("#address").val(),
+                    city: $("#city").val(),
+                    state: $("#state").val(),
+                    zipCode: $("#zipCode").val()
+                };
+                console.log('Form data collected:', formData);
+                
+                console.log('Save clicked - photoAction:', photoAction, 'selectedFile:', !!selectedFile);
+                
+                // Handle photo changes
+                if (photoAction === 'upload' && selectedFile) {
+                    const photoFormData = new FormData();
+                    photoFormData.append('photo', selectedFile);
+                    
+                    $.ajax({
+                        url: 'php/upload_photo.php',
+                        method: 'POST',
+                        data: photoFormData,
+                        processData: false,
+                        contentType: false,
+                        dataType: 'json',
+                        success: function(photoResponse) {
+                            if (photoResponse.status === 'success') {
+                                $("#headerAvatar").html(`<img src="${photoResponse.photo_path}" alt="Profile" class="avatar-img">`);
+                            }
+                            updateProfile();
+                        },
+                        error: function() {
+                            updateProfile();
+                        }
+                    });
+                } else if (photoAction === 'remove') {
+                    $.ajax({
+                        url: "php/remove_photo.php",
+                        method: "POST",
+                        dataType: "json",
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                const initial = $("#username").val().charAt(0).toUpperCase();
+                                $("#headerAvatar").html(`<div style="width: 40px; height: 40px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">${initial}</div>`);
+                            }
+                            updateProfile();
+                        },
+                        error: function() {
+                            updateProfile();
+                        }
+                    });
+                } else {
+                    console.log('No photo changes, calling updateProfile directly');
+                    updateProfile();
+                }
+                
+                function updateProfile() {
+                    console.log('Updating profile with data:', formData);
+                    $.ajax({
+                        url: "php/update_profile.php",
+                        method: "POST",
+                        data: formData,
+                        dataType: "json",
+                        success: function(response) {
+                            console.log('Profile update response:', response);
+                            if (response.status === 'success') {
+                                $(".form-input, .form-select").removeClass("editable");
+                                $(".plus-icon").hide();
+                                $("#editBtn").text("Edit");
+                                isEditing = false;
+                                photoAction = null;
+                                selectedFile = null;
+                                
+                                // Update profile name display
+                                const fullName = `${$("#firstName").val()} ${$("#lastName").val()}`.trim();
+                                $("#profileName").text(fullName || $("#username").val());
+                            } else {
+                                console.log('Profile update failed:', response.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            console.log('Profile update error:', xhr.responseText);
+                            // Reset button even on error
+                            $(".form-input, .form-select").removeClass("editable");
+                            $(".plus-icon").hide();
+                            $("#editBtn").text("Edit");
+                            isEditing = false;
+                        }
+                    });
+                }
+            }
+        });
+        
+        function loadProfile() {
+            $.ajax({
+                url: "php/db_profile.php",
+                method: "GET",
+                dataType: "json",
+                success: function (response) {
+                    console.log('Profile response:', response);
+                    console.log('Response status:', response.status);
+                    console.log('User data:', response.user);
+                    if (response.status === "success") {
+                        displayProfile(response.user);
+                    } else {
+                        console.log('Profile load failed:', response.message);
+                        window.location.href = "login.html";
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log('Profile AJAX error:', xhr.responseText);
+                    window.location.href = "login.html";
+                }
+            });
+        }
+        
+        function displayProfile(user) {
+            $("#welcomeText").text(`Welcome, ${user.username}`);
+            $("#profileName").text(`${user.first_name} ${user.last_name}`.trim() || user.username);
+            $("#profileEmail").text(user.email);
+            $("#emailAddress").text(user.email);
+            
+            // Populate all form fields
+            $("#userId").val(user.id);
+            $("#username").val(user.username);
+            $("#firstName").val(user.first_name || '');
+            $("#lastName").val(user.last_name || '');
+            $("#email").val(user.email);
+            $("#age").val(user.age || '');
+            $("#dob").val(user.dob || '');
+            $("#contact").val(user.contact || '');
+            $("#gender").val(user.gender || '');
+            $("#occupation").val(user.occupation || '');
+            $("#address").val(user.address || '');
+            $("#city").val(user.city || '');
+            $("#state").val(user.state || '');
+            $("#zipCode").val(user.zip_code || '');
+            
+            // Update avatar - show photo if exists, otherwise show initial
+            if (user.photo && user.photo.trim() !== '') {
+                // Test if image exists, fallback to avatar if not
+                const img = new Image();
+                img.onload = function() {
+                    $("#headerAvatar").html(`<img src="${user.photo}" alt="Profile" class="avatar-img">`);
+                    $("#profileAvatar").html(`<img src="${user.photo}" alt="Profile" class="avatar-img">`);
+                };
+                img.onerror = function() {
+                    // Image doesn't exist, show avatar
+                    const initial = user.username.charAt(0).toUpperCase();
+                    $("#headerAvatar").html(`<div style="width: 40px; height: 40px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">${initial}</div>`);
+                    $("#profileAvatar").html(`<div style="width: 80px; height: 80px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px;">${initial}</div>`);
+                };
+                img.src = user.photo;
+            } else {
+                const initial = user.username.charAt(0).toUpperCase();
+                $("#headerAvatar").html(`<div style="width: 40px; height: 40px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">${initial}</div>`);
+                $("#profileAvatar").html(`<div style="width: 80px; height: 80px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px;">${initial}</div>`);
+            }
+        }
+    });
+    </script>
+</body>
+</html>

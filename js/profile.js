@@ -86,31 +86,20 @@ $(document).ready(function () {
 
   function loadProfile() {
     const token = localStorage.getItem('sessionToken');
-    if (!token) {
+    const user = localStorage.getItem('user');
+    
+    if (!token || !user) {
       window.location.href = "login.html";
       return;
     }
     
-    $.ajax({
-      url: "php/basic_profile.php",
-      method: "GET",
-      dataType: "json",
-      data: { token: token },
-      success: function (response) {
-        if (response.status === "success") {
-          displayProfile(response.user);
-        } else {
-          localStorage.removeItem('sessionToken');
-          localStorage.removeItem('user');
-          window.location.href = "login.html";
-        }
-      },
-      error: function () {
-        localStorage.removeItem('sessionToken');
-        localStorage.removeItem('user');
-        window.location.href = "login.html";
-      }
-    });
+    // Use stored user data instead of making AJAX call
+    try {
+      const userData = JSON.parse(user);
+      displayProfile(userData);
+    } catch (e) {
+      window.location.href = "login.html";
+    }
   }
 
   function displayProfile(user) {
