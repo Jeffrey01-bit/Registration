@@ -190,8 +190,8 @@
     <button id="logoutBtn" style="display: none;">Logout</button>
     
     <!-- Delete Account Button -->
-    <div style="text-align: center; padding: 40px;">
-        <button id="deleteAccountBtn" style="background: #dc3545; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+    <div style="display: flex; justify-content: center; padding: 40px;">
+        <button id="deleteAccountBtn" style="background: #dc3545; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.3s ease;" onmouseover="this.style.background='#c82333'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(220,53,69,0.3)'" onmouseout="this.style.background='#dc3545'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
             <i class="fas fa-trash"></i>
             <span style="text-transform: uppercase; font-weight: bold;">DELETE ACCOUNT</span>
         </button>
@@ -411,10 +411,12 @@
             // Delete account functionality
             $('#deleteAccountBtn').click(function() {
                 $('#deleteModal').show();
+                $('body').css('overflow', 'hidden');
             });
             
             $('#cancelDelete').click(function() {
                 $('#deleteModal').hide();
+                $('body').css('overflow', 'auto');
             });
             
             $('#confirmDelete').click(function() {
@@ -422,14 +424,14 @@
                 .done(function(response) {
                     if (response.status === 'success') {
                         $('#deleteModal').hide();
-                        alert('Account deleted successfully. You will be logged out.');
+                        $('body').css('overflow', 'auto');
                         window.location.href = 'login.html';
-                    } else {
-                        alert('Error deleting account: ' + response.message);
                     }
                 })
-                .fail(function() {
-                    alert('Error deleting account. Please try again.');
+                .always(function() {
+                    $('#deleteModal').hide();
+                    $('body').css('overflow', 'auto');
+                    window.location.href = 'login.html';
                 });
             });
             
@@ -437,6 +439,7 @@
             $('#deleteModal').click(function(e) {
                 if (e.target === this) {
                     $(this).hide();
+                    $('body').css('overflow', 'auto');
                 }
             });
         });

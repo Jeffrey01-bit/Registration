@@ -85,11 +85,14 @@
                 $("#message").html(`<div class="alert alert-danger">${message}</div>`);
             }
             
-            $("#togglePassword").click(function() {
-                const passwordField = $("#password");
-                const type = passwordField.attr("type") === "password" ? "text" : "password";
-                passwordField.attr("type", type);
-                $(this).toggleClass("fa-eye fa-eye-slash");
+            // Password visibility on tap and hold
+            $('#togglePassword').on('mousedown touchstart', function(e) {
+                e.preventDefault();
+                $('#password').attr('type', 'text');
+                $(this).removeClass('fa-eye').addClass('fa-eye-slash');
+            }).on('mouseup mouseleave touchend', function() {
+                $('#password').attr('type', 'password');
+                $(this).removeClass('fa-eye-slash').addClass('fa-eye');
             });
         });
     </script>

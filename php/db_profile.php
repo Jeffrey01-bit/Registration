@@ -38,7 +38,6 @@ try {
                 'state' => $user['state'] ?? '',
                 'zip_code' => $user['zip_code'] ?? '',
                 'occupation' => $user['occupation'] ?? '',
-                'company' => $user['company'] ?? '',
                 'photo' => $user['photo'] ?? ''
             ]
         ]);
