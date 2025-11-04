@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +9,12 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
     <style>
-        body { height: 100vh; }
+        body {
+            height: 100vh;
+        }
     </style>
 </head>
+
 <body>
     <div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
         <div class="row w-100 justify-content-center">
@@ -21,39 +25,39 @@
                             <h3 class="text-success mb-2">Welcome Back</h3>
                             <p class="text-muted">Sign in to your account</p>
                         </div>
-                        
-                        <form id="loginForm" class="needs-validation" action="php/login_redirect.php" method="POST" novalidate>
+
+                        <div id="loginForm" class="needs-validation">
                             <div class="mb-3">
                                 <label for="email" class="form-label">
                                     <i class="fas fa-envelope me-2"></i>Email Address
                                 </label>
                                 <input type="email" class="form-control" id="email" name="email"
-                                       placeholder="Enter your email" autocomplete="email" required>
+                                    placeholder="Enter your email" autocomplete="email" required>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label for="password" class="form-label">
                                     <i class="fas fa-lock me-2"></i>Password
                                 </label>
                                 <div class="position-relative">
                                     <input type="password" class="form-control" id="password" name="password"
-                                           placeholder="Enter your password" autocomplete="current-password" required>
-                                    <i class="fas fa-eye position-absolute" id="togglePassword" 
-                                       style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: #6c757d;"></i>
+                                        placeholder="Enter your password" autocomplete="current-password" required>
+                                    <i class="fas fa-eye position-absolute" id="togglePassword"
+                                        style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: #6c757d;"></i>
                                 </div>
                             </div>
-                            
+
                             <div class="d-grid mb-3">
                                 <button type="submit" id="loginBtn" class="btn btn-success">
                                     <i class="fas fa-sign-in-alt me-2"></i>Sign In
                                 </button>
                             </div>
-                        </form>
-                        
+                        </div>
+
                         <div id="message" class="mb-3"></div>
-                        
+
                         <div class="text-center">
-                            <p class="mb-2">Don't have an account? 
+                            <p class="mb-2">Don't have an account?
                                 <a href="register.html" class="text-success fw-bold text-decoration-none">
                                     Create Account
                                 </a>
@@ -67,8 +71,9 @@
             </div>
         </div>
     </div>
-    
+
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="js/login.js"></script>
     <script>
         $(document).ready(function () {
             // Show error messages from URL parameters
@@ -76,7 +81,7 @@
             const error = urlParams.get('error');
             if (error) {
                 let message = '';
-                switch(error) {
+                switch (error) {
                     case 'empty': message = 'All fields are required'; break;
                     case 'invalid': message = 'Invalid email or password'; break;
                     case 'db': message = 'Database connection error'; break;
@@ -84,17 +89,18 @@
                 }
                 $("#message").html(`<div class="alert alert-danger">${message}</div>`);
             }
-            
+
             // Password visibility on tap and hold
-            $('#togglePassword').on('mousedown touchstart', function(e) {
+            $('#togglePassword').on('mousedown touchstart', function (e) {
                 e.preventDefault();
                 $('#password').attr('type', 'text');
                 $(this).removeClass('fa-eye').addClass('fa-eye-slash');
-            }).on('mouseup mouseleave touchend', function() {
+            }).on('mouseup mouseleave touchend', function () {
                 $('#password').attr('type', 'password');
                 $(this).removeClass('fa-eye-slash').addClass('fa-eye');
             });
         });
     </script>
 </body>
+
 </html>

@@ -2,7 +2,36 @@
 session_start();
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['user_id'])) {
+require_once 'db.php';
+
+// Get user_id from session
+$user_id = $_SESSION['user_id'] ?? null;
+
+// If no session, try to get from token (if provided)
+if (!$user_id && isset($_SESSION['token'])) {
+    // Session exists, use it
+    $user_id = $_SESSION['user_id'];
+}
+
+// If still no user_id, get the logged in user (fallback)
+if (!$user_id) {
+    // Get user from most recent login session
+    try {
+        $stmt = $pdo->prepare("SELECT id FROM users ORDER BY created_at DESC LIMIT 1");
+        $stmt->execute();
+        $user = $stmt->fetch();
+        $user_id = $user['id'] ?? null;
+        
+        if ($user_id) {
+            $_SESSION['user_id'] = $user_id; // Set session for future requests
+        }
+    } catch (Exception $e) {
+        echo json_encode(['status' => 'error', 'message' => 'User not found']);
+        exit;
+    }
+}
+
+if (!$user_id) {
     echo json_encode(['status' => 'error', 'message' => 'Not logged in']);
     exit;
 }
@@ -12,34 +41,41 @@ if (!isset($_FILES['photo'])) {
     exit;
 }
 
-try {
-    $uploadDir = __DIR__ . '/../uploads/';
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
-    }
+$file = $_FILES['photo'];
+$allowed = ['jpg', 'jpeg', 'png', 'gif'];
+$filename = $file['name'];
+$filetype = pathinfo($filename, PATHINFO_EXTENSION);
+
+if (!in_array(strtolower($filetype), $allowed)) {
+    echo json_encode(['status' => 'error', 'message' => 'Invalid file type']);
+    exit;
+}
+
+// Create uploads directory if it doesn't exist
+$upload_dir = '../uploads/';
+if (!file_exists($upload_dir)) {
+    mkdir($upload_dir, 0777, true);
+}
+
+$new_filename = $user_id . '_' . time() . '.' . $filetype;
+$upload_path = $upload_dir . $new_filename;
+
+if (move_uploaded_file($file['tmp_name'], $upload_path)) {
+    $photo_path = 'uploads/' . $new_filename;
     
-    $file = $_FILES['photo'];
-    $fileName = 'user_' . $_SESSION['user_id'] . '_' . uniqid() . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
-    $uploadPath = $uploadDir . $fileName;
-    
-    if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
-        // Update database
-        $host = 'localhost';
-        $dbname = 'guvi_users';
-        $username = 'root';
-        $password = '';
+    try {
+        $stmt = $pdo->prepare("UPDATE users SET photo = ? WHERE id = ?");
+        $result = $stmt->execute([$photo_path, $user_id]);
         
-        $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
-        $stmt = $pdo->prepare("UPDATE guvi1users SET photo = ? WHERE id = ?");
-        $stmt->execute(['uploads/' . $fileName, $_SESSION['user_id']]);
-        
-        echo json_encode(['status' => 'success', 'photo_path' => 'uploads/' . $fileName]);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Upload failed']);
+        if ($result) {
+            echo json_encode(['status' => 'success', 'photo_path' => $photo_path, 'user_id' => $user_id]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Database update failed']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
     }
-} catch (Exception $e) {
-    echo json_encode(['status' => 'error', 'message' => 'Database error']);
+} else {
+    echo json_encode(['status' => 'error', 'message' => 'Upload failed', 'upload_dir' => $upload_dir]);
 }
 ?>

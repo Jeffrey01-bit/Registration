@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
         <div class="text-center fade-in">
@@ -43,16 +45,17 @@
             </div>
         </div>
     </div>
-    
+
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Add staggered animation to stats cards
-            $('.stats-card').each(function(index) {
+            $('.stats-card').each(function (index) {
                 $(this).css('animation-delay', (index * 0.2) + 's');
                 $(this).addClass('fade-in');
             });
         });
     </script>
 </body>
+
 </html>

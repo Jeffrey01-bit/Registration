@@ -1,7 +1,7 @@
 $(document).ready(function () {
   $("#registerForm").submit(function (e) {
     e.preventDefault();
-    
+
     let username = $("#username").val().trim();
     let email = $("#email").val().trim();
     let password = $("#password").val().trim();
@@ -14,12 +14,12 @@ $(document).ready(function () {
       showMessage("Username is required.", "danger");
       return;
     }
-    
+
     if (!email) {
       showMessage("Email is required.", "danger");
       return;
     }
-    
+
     if (!password) {
       showMessage("Password is required.", "danger");
       return;
@@ -36,7 +36,7 @@ $(document).ready(function () {
     }
 
     $.ajax({
-      url: "php/mysql_register.php",
+      url: "php/register.php",
       method: "POST",
       dataType: "json",
       data: {
@@ -46,8 +46,11 @@ $(document).ready(function () {
       },
       success: function (response) {
         if (response.status === "success") {
-          showMessage("Registration successful! Redirecting to login...", "success");
-          setTimeout(function() {
+          showMessage(
+            "Registration successful! Redirecting to login...",
+            "success"
+          );
+          setTimeout(function () {
             window.location.href = "login.html";
           }, 1500);
         } else {
@@ -55,7 +58,7 @@ $(document).ready(function () {
         }
       },
       error: function (xhr) {
-        console.error('Registration error:', xhr.responseText);
+        console.error("Registration error:", xhr.responseText);
         showMessage("Server error. Please try again.", "danger");
       },
     });
@@ -68,14 +71,16 @@ $(document).ready(function () {
   function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
-  
+
   // Password visibility on tap and hold
-  $('#togglePassword').on('mousedown touchstart', function(e) {
-    e.preventDefault();
-    $('#password').attr('type', 'text');
-    $(this).removeClass('fa-eye').addClass('fa-eye-slash');
-  }).on('mouseup mouseleave touchend', function() {
-    $('#password').attr('type', 'password');
-    $(this).removeClass('fa-eye-slash').addClass('fa-eye');
-  });
+  $("#togglePassword")
+    .on("mousedown touchstart", function (e) {
+      e.preventDefault();
+      $("#password").attr("type", "text");
+      $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+    })
+    .on("mouseup mouseleave touchend", function () {
+      $("#password").attr("type", "password");
+      $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+    });
 });

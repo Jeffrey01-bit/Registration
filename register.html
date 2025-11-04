@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +9,13 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
     <style>
-        body { height: 100vh; overflow: hidden; }
+        body {
+            height: 100vh;
+            overflow: hidden;
+        }
     </style>
 </head>
+
 <body>
     <div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
         <div class="row w-100 justify-content-center">
@@ -21,47 +26,47 @@
                             <h3 class="text-success mb-2">Create Account</h3>
                             <p class="text-muted">Join GUVI Internship Program</p>
                         </div>
-                        
+
                         <form id="registerForm" class="needs-validation" novalidate>
                             <div class="mb-3">
                                 <label for="username" class="form-label">
                                     <i class="fas fa-user me-2"></i>Username
                                 </label>
-                                <input type="text" class="form-control" id="username" 
-                                       placeholder="Enter username" required>
+                                <input type="text" class="form-control" id="username" placeholder="Enter username"
+                                    required>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label for="email" class="form-label">
                                     <i class="fas fa-envelope me-2"></i>Email Address
                                 </label>
-                                <input type="email" class="form-control" id="email" 
-                                       placeholder="Enter your email" required>
+                                <input type="email" class="form-control" id="email" placeholder="Enter your email"
+                                    required>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label for="password" class="form-label">
                                     <i class="fas fa-lock me-2"></i>Password
                                 </label>
                                 <div class="position-relative">
-                                    <input type="password" class="form-control" id="password" 
-                                           placeholder="Enter password" minlength="6" required>
-                                    <i class="fas fa-eye position-absolute" id="togglePassword" 
-                                       style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: #6c757d;"></i>
+                                    <input type="password" class="form-control" id="password"
+                                        placeholder="Enter password" minlength="6" required>
+                                    <i class="fas fa-eye position-absolute" id="togglePassword"
+                                        style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: #6c757d;"></i>
                                 </div>
                             </div>
-                            
+
                             <div class="d-grid mb-3">
                                 <button type="submit" id="registerBtn" class="btn btn-success">
                                     <i class="fas fa-user-plus me-2"></i>Create Account
                                 </button>
                             </div>
                         </form>
-                        
+
                         <div id="message" class="mb-3"></div>
-                        
+
                         <div class="text-center">
-                            <p class="mb-2">Already have an account? 
+                            <p class="mb-2">Already have an account?
                                 <a href="login.html" class="text-success fw-bold text-decoration-none">
                                     Sign In
                                 </a>
@@ -75,8 +80,9 @@
             </div>
         </div>
     </div>
-    
+
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="js/register.js"></script>
 </body>
+
 </html>

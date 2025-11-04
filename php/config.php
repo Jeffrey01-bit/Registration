@@ -6,7 +6,7 @@ class DatabaseConfig {
     const DB_HOST = 'localhost';
     const DB_NAME = 'guvi_users';
     const DB_USER = 'root';
-    const DB_PASS = '';
+    const DB_PASS = 'Goldenjef8';
     const DB_TABLE = 'guvi1users';
     
     // Get PDO connection

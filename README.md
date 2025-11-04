@@ -1,99 +1,191 @@
 # GUVI Internship - Registration & Login System
 
-A complete user registration and login system built with HTML, CSS, JavaScript, PHP, and MySQL.
+A complete user registration and login system built with HTML, CSS, JavaScript, PHP, and MySQL following GUVI internship requirements.
 
-## Features
+## 🎯 Problem Statement
 
-- **User Registration**: Secure signup with validation
-- **User Login**: Authentication with session management  
-- **User Profile**: Display user information after login
-- **Responsive Design**: Bootstrap-based UI
-- **Security**: Password hashing, input validation, SQL injection prevention
+Create a signup page where a user can register and a login page to log in with the details provided during registration. Successful login should redirect to a profile page which should contain additional details such as age, dob, contact, etc. The user can update these details.
 
-## Tech Stack
+**Flow:** Register → Login → Profile
 
-- **Frontend**: HTML5, CSS3, JavaScript (jQuery), Bootstrap 5
-- **Backend**: PHP 7.4+
-- **Database**: MySQL/MariaDB
-- **Server**: Apache/Nginx (XAMPP/WAMP recommended for local development)
+## ✅ Requirements Fulfilled
 
-## Setup Instructions
+### Technical Requirements
+- ✅ **Separate Files**: HTML, JS, CSS, and PHP code in separate files
+- ✅ **jQuery AJAX**: All backend interactions use jQuery AJAX (no form submission)
+- ✅ **Bootstrap Design**: Responsive design using Bootstrap 5
+- ✅ **MySQL Database**: User data stored in MySQL with prepared statements
+- ✅ **LocalStorage Sessions**: Login sessions maintained using browser localStorage
+- ✅ **Redis Integration**: Optional Redis support for session storage
 
-### 1. Prerequisites
-- XAMPP/WAMP/LAMP stack installed
-- Web server running (Apache)
-- MySQL/MariaDB running
+### Security Features
+- ✅ **Password Hashing**: Secure password hashing using PHP's password_hash()
+- ✅ **Prepared Statements**: SQL injection prevention
+- ✅ **Input Validation**: Client and server-side validation
+- ✅ **XSS Prevention**: Output sanitization
 
-### 2. Database Setup
-1. Open phpMyAdmin or MySQL command line
-2. Import the `database.sql` file to create the database and tables
-3. Or run the SQL commands manually:
-   ```sql
-   CREATE DATABASE guvi_users;
-   USE guvi_users;
-   -- (copy contents from database.sql)
+## 🚀 Quick Start
+
+### Prerequisites
+- XAMPP/WAMP/LAMP server
+- PHP 8.0+
+- MySQL 5.7+
+- Web browser
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd Registration
    ```
 
-### 3. Environment Configuration
-Create a `.env` file or set environment variables:
-```
-DB_HOST=localhost
-DB_NAME=guvi_users
-DB_USER=root
-DB_PASS=your_password
-```
+2. **Setup Database**
+   - Start XAMPP/WAMP
+   - Visit `http://localhost/setup_database.php`
+   - Database and tables will be created automatically
 
-### 4. File Placement
-- Copy all files to your web server directory (e.g., `htdocs` for XAMPP)
-- Ensure PHP has read/write permissions
+3. **Configure Environment**
+   - Update `.env` file with your database credentials:
+   ```
+   DB_HOST=localhost
+   DB_NAME=guvi_users
+   DB_USER=root
+   DB_PASS=your_password
+   ```
 
-### 5. Access the Application
-- Open `http://localhost/Registration/index.html` in your browser
-- Register a new account or login with existing credentials
+4. **Access Application**
+   - Main Page: `http://localhost/`
+   - Register: `http://localhost/register.html`
+   - Login: `http://localhost/login.html`
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 Registration/
-├── assets/
-│   └── css/
-│       └── style.css
+├── assets/css/
+│   ├── style.css              # Main styling
+│   └── profile.css            # Profile page styling
 ├── js/
-│   ├── login.js
-│   ├── profile.js
-│   └── register.js
+│   ├── login.js               # Login functionality
+│   ├── profile.js             # Profile management
+│   └── register.js            # Registration functionality
 ├── php/
-│   ├── db.php
-│   ├── login.php
-│   ├── logout.php
-│   ├── profile.php
-│   └── register.php
-├── index.html
-├── login.html
-├── profile.html
-├── register.html
-├── database.sql
-└── README.md
+│   ├── db.php                 # Database connection
+│   ├── login.php              # Login API
+│   ├── profile.php            # Profile API
+│   ├── register.php           # Registration API
+│   └── ...                    # Other backend files
+├── uploads/                   # User profile photos
+├── index.html                 # Landing page
+├── login.html                 # Login form
+├── profile.html               # User profile page
+├── register.html              # Registration form
+├── .env                       # Environment configuration
+└── setup_database.php         # Database initialization
 ```
 
-## Flow
+## 🛠️ Tech Stack
 
-1. **Register** → **Login** → **Profile**
-2. Users can register with username, email, and password
-3. Successful login redirects to profile page
-4. Profile displays user information with logout option
+- **Frontend**: HTML5, CSS3, JavaScript (jQuery), Bootstrap 5
+- **Backend**: PHP 8.2
+- **Database**: MySQL/MariaDB
+- **Server**: Apache
+- **Optional**: Redis for session storage
 
-## Security Features
+## 🔧 Features
 
-- Password hashing using PHP's `password_hash()`
-- Prepared statements to prevent SQL injection
-- Input validation and sanitization
-- Session management for authentication
-- Environment variables for database credentials
+### User Registration
+- Username and email validation
+- Password hashing with bcrypt
+- Duplicate user prevention
+- AJAX form submission
 
-## Browser Support
+### User Login
+- Email/username authentication
+- Session management with localStorage
+- Secure password verification
+- Automatic redirect to profile
 
-- Chrome 60+
-- Firefox 55+
-- Safari 12+
-- Edge 79+
+### User Profile
+- Complete profile management
+- Photo upload functionality
+- Editable user information
+- Account deletion option
+- Responsive design
+
+### Additional Fields
+- Personal: First Name, Last Name, Age, DOB
+- Contact: Phone, Email, Address
+- Location: City, State, Zip Code
+- Professional: Occupation, Gender
+
+## 🔒 Security Features
+
+1. **Password Security**: Bcrypt hashing with salt
+2. **SQL Injection Prevention**: Prepared statements
+3. **XSS Protection**: Input/output sanitization
+4. **Session Security**: LocalStorage with server validation
+5. **File Upload Security**: Type validation and secure storage
+
+## 📱 Responsive Design
+
+- Mobile-first approach
+- Bootstrap 5 grid system
+- Cross-browser compatibility
+- Modern UI with animations
+
+## 🚀 Usage
+
+1. **Register**: Create a new account with username, email, and password
+2. **Login**: Sign in with your credentials
+3. **Profile**: View and edit your profile information
+4. **Upload**: Add a profile picture
+5. **Update**: Modify your personal details
+6. **Logout**: Securely end your session
+
+## 🧪 Testing
+
+Visit `http://localhost/setup_database.php` to ensure database setup is complete, then:
+
+1. Register a new user account
+2. Login with the created credentials
+3. Access and update profile information
+4. Test photo upload functionality
+5. Verify responsive design on different devices
+
+## 📋 Database Schema
+
+```sql
+CREATE TABLE guvi1users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    age INT,
+    dob DATE,
+    contact VARCHAR(15),
+    gender ENUM('male', 'female', 'other'),
+    occupation VARCHAR(100),
+    address TEXT,
+    city VARCHAR(50),
+    state VARCHAR(50),
+    zip_code VARCHAR(10),
+    photo VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 🤝 Contributing
+
+This project was developed as part of the GUVI internship program. All requirements have been successfully implemented according to the provided specifications.
+
+## 📄 License
+
+This project is created for educational purposes as part of the GUVI internship program.
+
+---
+
+**Note**: This project fulfills all GUVI internship requirements including separate file structure, jQuery AJAX usage, Bootstrap design, MySQL integration, and localStorage session management.

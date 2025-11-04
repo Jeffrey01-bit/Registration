@@ -36,7 +36,26 @@ body {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
+}
+
+.header-right .btn {
+    border-radius: 10%;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 3px solid #28a745;
+    color: #28a745;
+    background: white;
+}
+
+.header-right .btn:hover {
+    background: #28a745;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40,167,69,0.3);
 }
 
 /* ===== DROPDOWN STYLES ===== */
