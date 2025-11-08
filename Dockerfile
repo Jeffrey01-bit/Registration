@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:php8.2
+FROM php:8.2-cli
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -12,13 +12,13 @@ RUN apt-get update && apt-get install -y \
 RUN pecl install mongodb redis \
     && docker-php-ext-enable mongodb redis
 
-# Copy composer
+# Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /app
 
-# Copy composer files
+# Copy composer files first
 COPY composer.json composer.lock ./
 
 # Install dependencies
@@ -27,15 +27,8 @@ RUN composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-mo
 # Copy application code
 COPY . .
 
-# Create uploads directory
-RUN mkdir -p uploads && chmod 755 uploads
+# Create uploads directory with proper permissions
+RUN mkdir -p uploads && chmod 777 uploads
 
-# Copy and set permissions for startup script
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-# Expose port
-EXPOSE 8000
-
-# Start command
-CMD ["/start.sh"]
+# Simple start command
+CMD php -S 0.0.0.0:$PORT -t .
