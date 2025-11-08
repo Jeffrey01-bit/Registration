@@ -30,8 +30,12 @@ COPY . .
 # Create uploads directory
 RUN mkdir -p uploads && chmod 755 uploads
 
+# Copy and set permissions for startup script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 # Expose port
 EXPOSE 8000
 
 # Start command
-CMD ["php", "-S", "0.0.0.0:8000"]
+CMD ["/start.sh"]
