@@ -3,56 +3,52 @@ session_start();
 require_once 'db.php';
 
 header('Content-Type: application/json');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
 
-
-
-// Redis connection (optional)
-$redis = null;
-try {
-    if (class_exists('Redis')) {
-        $redis = new Redis();
-        $redis->connect('127.0.0.1', 6379);
-    }
-} catch (Exception $e) {
-    $redis = null;
+function sanitizeInput($input) {
+    return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username']);
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-    $age = $_POST['age'] ?? null;
-    $dob = $_POST['dob'] ?? null;
-    $contact = $_POST['contact'] ?? null;
-
-    if (empty($username) || empty($email) || empty($password)) {
-        echo json_encode(['status' => 'error', 'message' => 'All required fields must be filled']);
-        exit;
-    }
-
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid email format']);
-        exit;
-    }
-
     try {
+        $username = sanitizeInput($_POST['username'] ?? '');
+        $email = sanitizeInput($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        
+        if (empty($username) || empty($email) || empty($password)) {
+            throw new Exception('All required fields must be filled');
+        }
+        
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception('Invalid email format');
+        }
+        
+        if (strlen($password) < 6) {
+            throw new Exception('Password must be at least 6 characters');
+        }
+        
         $stmt = $pdo->prepare("SELECT id FROM guvi1users WHERE username = ? OR email = ?");
         $stmt->execute([$username, $email]);
         
         if ($stmt->rowCount() > 0) {
-            echo json_encode(['status' => 'error', 'message' => 'Username or email already exists']);
-            exit;
+            throw new Exception('Username or email already exists');
         }
-
+        
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         
-        $stmt = $pdo->prepare("INSERT INTO guvi1users (username, email, password, age, dob, contact) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$username, $email, $hashedPassword, $age, $dob, $contact]);
+        $stmt = $pdo->prepare("INSERT INTO guvi1users (username, email, password, created_at) VALUES (?, ?, ?, NOW())");
+        $stmt->execute([$username, $email, $hashedPassword]);
         
         echo json_encode(['status' => 'success', 'message' => 'Registration successful']);
-    } catch(PDOException $e) {
+        
+    } catch (Exception $e) {
         error_log("Registration error: " . $e->getMessage());
-        echo json_encode(['status' => 'error', 'message' => 'Registration failed']);
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
+} else {
+    http_response_code(405);
+    echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
 }
 ?>

@@ -1,6 +1,12 @@
 $(document).ready(function() {
     // Load profile data
-    $.get('php/db_profile.php')
+    const token = localStorage.getItem('session_token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    $.get('php/db_profile.php', { token: token })
     .done(function(data) {
         if (data.status === 'success') {
             const user = data.user;
@@ -8,9 +14,9 @@ $(document).ready(function() {
             // Display full name only if both first and last names exist
             const fullName = (user.first_name && user.last_name) ? `${user.first_name} ${user.last_name}` : '';
             
-            $('#welcomeText').text(fullName ? `Welcome, ${fullName}` : `Welcome, ${user.username}`);
-            $('#profileName').text(fullName || user.username);
-            $('#profileEmail, #emailAddress').text(user.email);
+            $('#welcomeText').text(fullName ? `Welcome, ${$('<div>').text(fullName).html()}` : `Welcome, ${$('<div>').text(user.username).html()}`);
+            $('#profileName').text($('<div>').text(fullName || user.username).html());
+            $('#profileEmail, #emailAddress').text($('<div>').text(user.email).html());
             
             // Fill form fields
             $('#userId').val(user.id);
@@ -36,8 +42,8 @@ $(document).ready(function() {
             if (user.photo && user.photo.trim() !== '') {
                 const img = new Image();
                 img.onload = function() {
-                    $('#headerAvatar').html(`<img src="${user.photo}" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`);
-                    $('#profileAvatar').html(`<img src="${user.photo}" alt="Profile" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">`);
+                    $('#headerAvatar').html(`<img src="${$('<div>').text(user.photo).html()}" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`);
+                    $('#profileAvatar').html(`<img src="${$('<div>').text(user.photo).html()}" alt="Profile" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">`);
                 };
                 img.onerror = function() {
                     showInitials(user.username);
@@ -93,8 +99,10 @@ $(document).ready(function() {
                 const photoFormData = new FormData();
                 photoFormData.append('photo', selectedFile);
                 
+                photoFormData.append('token', localStorage.getItem('session_token'));
+                
                 $.ajax({
-                    url: 'php/test_upload.php',
+                    url: 'php/upload_photo_mongo.php',
                     method: 'POST',
                     data: photoFormData,
                     processData: false,
@@ -125,7 +133,9 @@ $(document).ready(function() {
             }
             
             function updateProfile() {
-                $.post('php/update_profile.php', formData)
+                const token = localStorage.getItem('session_token');
+                const updateData = Object.assign({}, formData, { token: token });
+                $.post('php/profile.php', updateData)
                 .done(function(response) {
                     if (response.status === 'success') {
                         // Update display names only if both first and last names are provided

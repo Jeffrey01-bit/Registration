@@ -20,7 +20,7 @@ $(document).ready(function() {
         }
         
         $.ajax({
-            url: 'php/simple_login.php',
+            url: 'php/login.php',
             type: 'POST',
             data: {
                 username: email,
