@@ -22,7 +22,7 @@ WORKDIR /app
 COPY composer.json composer.lock ./
 
 # Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-mongodb --ignore-platform-req=ext-redis
 
 # Copy application code
 COPY . .

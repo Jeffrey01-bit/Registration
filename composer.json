@@ -3,9 +3,6 @@
         "mongodb/mongodb": "^1.15"
     },
     "config": {
-        "platform": {
-            "ext-mongodb": "1.15.0",
-            "ext-redis": "5.3.0"
-        }
+        "platform-check": false
     }
 }
