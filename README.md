@@ -71,17 +71,22 @@ Registration/
 │   ├── profile.js             # Profile management
 │   └── register.js            # Registration functionality
 ├── php/
-│   ├── db.php                 # Database connection
+│   ├── db.php                 # MySQL connection
 │   ├── login.php              # Login API
-│   ├── profile.php            # Profile API
 │   ├── register.php           # Registration API
-│   └── ...                    # Other backend files
+│   ├── profile.php            # Profile management API
+│   ├── photo.php              # Photo upload/retrieval API
+│   ├── mongodb.php            # MongoDB helper class
+│   ├── redis_session.php      # Session management
+│   └── delete_account.php     # Account deletion
 ├── uploads/                   # User profile photos
+├── profiles/                  # JSON fallback files
+├── sessions/                  # Redis session files
+├── vendor/                    # Composer dependencies
 ├── index.html                 # Landing page
 ├── login.html                 # Login form
 ├── profile.html               # User profile page
 ├── register.html              # Registration form
-├── .env                       # Environment configuration
 └── setup_database.php         # Database initialization
 ```
 

@@ -1,4 +1,7 @@
 $(document).ready(function() {
+    // Generate CSRF token
+    const csrfToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    
     // Triple prevention for form submission
     $('#loginForm').on('submit', function(e) {
         e.preventDefault();
@@ -11,11 +14,17 @@ $(document).ready(function() {
         e.preventDefault();
         e.stopPropagation();
         
-        const email = $('#email').val();
+        const email = $('#email').val().trim();
         const password = $('#password').val();
         
         if (!email || !password) {
-            alert('Please fill in all fields');
+            showMessage('Please fill in all fields', 'danger');
+            return false;
+        }
+        
+        // Basic email validation
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showMessage('Please enter a valid email address', 'danger');
             return false;
         }
         
@@ -24,7 +33,8 @@ $(document).ready(function() {
             type: 'POST',
             data: {
                 username: email,
-                password: password
+                password: password,
+                csrf_token: csrfToken
             },
             dataType: 'json',
             success: function(response) {
@@ -33,15 +43,20 @@ $(document).ready(function() {
                     localStorage.setItem('user', JSON.stringify(response.user));
                     window.location.href = 'profile.html';
                 } else {
-                    alert('Error: ' + response.message);
+                    showMessage(response.message || 'Login failed', 'danger');
                 }
             },
             error: function(xhr, status, error) {
-                console.log('Error details:', xhr.responseText);
-                alert('Connection error. Please check if XAMPP is running.');
+                console.error('Login error:', error);
+                showMessage('Connection error. Please check if the server is running.', 'danger');
             }
         });
         
         return false;
     });
+    
+    function showMessage(message, type) {
+        const escapedMessage = $('<div>').text(message).html();
+        $('#message').html(`<div class="alert alert-${type}">${escapedMessage}</div>`);
+    }
 });

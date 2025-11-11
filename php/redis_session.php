@@ -20,30 +20,45 @@ class RedisSession {
     
     private static function getFallbackDir() {
         if (self::$fallback_dir === null) {
-            self::$fallback_dir = __DIR__ . '/../sessions/';
+            self::$fallback_dir = realpath(__DIR__ . '/../sessions/') . '/';
             if (!is_dir(self::$fallback_dir)) {
                 mkdir(self::$fallback_dir, 0755, true);
+                self::$fallback_dir = realpath(self::$fallback_dir) . '/';
             }
         }
         return self::$fallback_dir;
     }
     
+    private static function sanitizeToken($token) {
+        // Only allow alphanumeric characters and ensure reasonable length
+        if (!preg_match('/^[a-zA-Z0-9]{32,128}$/', $token)) {
+            throw new Exception('Invalid token format');
+        }
+        return $token;
+    }
+    
     public static function store($token, $userData) {
+        $token = self::sanitizeToken($token);
         try {
             $redis = self::getRedis();
             return $redis->setex("session:$token", 3600, json_encode($userData));
         } catch (Exception $e) {
             // Fallback to file storage
             $file = self::getFallbackDir() . "session_$token.json";
+            // Ensure file is within the sessions directory
+            if (strpos(realpath(dirname($file)), realpath(self::getFallbackDir())) !== 0) {
+                throw new Exception('Invalid file path');
+            }
             $data = [
                 'data' => $userData,
                 'expires' => time() + 3600
             ];
-            return file_put_contents($file, json_encode($data)) !== false;
+            return file_put_contents($file, json_encode($data), LOCK_EX) !== false;
         }
     }
     
     public static function get($token) {
+        $token = self::sanitizeToken($token);
         try {
             $redis = self::getRedis();
             $data = $redis->get("session:$token");
@@ -51,12 +66,16 @@ class RedisSession {
         } catch (Exception $e) {
             // Fallback to file storage
             $file = self::getFallbackDir() . "session_$token.json";
+            // Ensure file is within the sessions directory
+            if (strpos(realpath(dirname($file)), realpath(self::getFallbackDir())) !== 0) {
+                return null;
+            }
             if (file_exists($file)) {
                 $content = json_decode(file_get_contents($file), true);
                 if ($content && $content['expires'] > time()) {
                     return $content['data'];
                 } else {
-                    unlink($file);
+                    @unlink($file);
                 }
             }
             return null;
@@ -64,14 +83,19 @@ class RedisSession {
     }
     
     public static function delete($token) {
+        $token = self::sanitizeToken($token);
         try {
             $redis = self::getRedis();
             return $redis->del("session:$token");
         } catch (Exception $e) {
             // Fallback to file storage
             $file = self::getFallbackDir() . "session_$token.json";
+            // Ensure file is within the sessions directory
+            if (strpos(realpath(dirname($file)), realpath(self::getFallbackDir())) !== 0) {
+                return true;
+            }
             if (file_exists($file)) {
-                return unlink($file);
+                return @unlink($file);
             }
             return true;
         }

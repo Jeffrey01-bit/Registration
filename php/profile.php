@@ -12,8 +12,22 @@ function sanitizeInput($input) {
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
-    $userId = (int)$_GET['id'];
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    // Get user ID from token or direct ID
+    if (isset($_GET['token'])) {
+        $token = sanitizeInput($_GET['token']);
+        $session = RedisSession::get($token);
+        if (!$session || !isset($session['user_id'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid session']);
+            exit;
+        }
+        $userId = (int)$session['user_id'];
+    } elseif (isset($_GET['id'])) {
+        $userId = (int)$_GET['id'];
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'No user specified']);
+        exit;
+    }
     
     try {
         // Get basic user data from MySQL
@@ -32,38 +46,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                 'created_at' => $user['created_at']
             ];
             
-            // Merge MongoDB profile data
+            // Add MongoDB profile data
             if ($profile) {
-                $userData = array_merge($userData, [
-                    'first_name' => sanitizeInput($profile['first_name'] ?? ''),
-                    'last_name' => sanitizeInput($profile['last_name'] ?? ''),
-                    'age' => $profile['age'] ?? null,
-                    'dob' => $profile['dob'] ?? '',
-                    'contact' => sanitizeInput($profile['contact'] ?? ''),
-                    'gender' => sanitizeInput($profile['gender'] ?? ''),
-                    'occupation' => sanitizeInput($profile['occupation'] ?? ''),
-                    'address' => sanitizeInput($profile['address'] ?? ''),
-                    'city' => sanitizeInput($profile['city'] ?? ''),
-                    'state' => sanitizeInput($profile['state'] ?? ''),
-                    'zip_code' => sanitizeInput($profile['zip_code'] ?? ''),
-                    'photo' => sanitizeInput($profile['photo'] ?? '')
-                ]);
+                foreach ($profile as $key => $value) {
+                    if ($key !== '_id' && $key !== 'user_id') {
+                        $userData[$key] = $value;
+                    }
+                }
             } else {
                 // Default empty profile
                 $userData = array_merge($userData, [
                     'first_name' => '', 'last_name' => '', 'age' => null, 'dob' => '',
                     'contact' => '', 'gender' => '', 'occupation' => '', 'address' => '',
-                    'city' => '', 'state' => '', 'zip_code' => '', 'photo' => ''
+                    'city' => '', 'state' => '', 'zip_code' => ''
                 ]);
             }
             
-            echo json_encode(['success' => true, 'user' => $userData]);
+            echo json_encode(['status' => 'success', 'user' => $userData]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'User not found']);
+            echo json_encode(['status' => 'error', 'message' => 'User not found']);
         }
     } catch(Exception $e) {
         error_log("Profile error: " . $e->getMessage());
-        echo json_encode(['success' => false, 'message' => 'Database error']);
+        echo json_encode(['status' => 'error', 'message' => 'Database error']);
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
@@ -99,12 +104,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
             'address' => sanitizeInput($_POST['address'] ?? ''),
             'city' => sanitizeInput($_POST['city'] ?? ''),
             'state' => sanitizeInput($_POST['state'] ?? ''),
-            'zip_code' => sanitizeInput($_POST['zipCode'] ?? ''),
-            'photo' => sanitizeInput($_POST['photo'] ?? '')
+            'zip_code' => sanitizeInput($_POST['zipCode'] ?? '')
         ];
         
-        // Save profile to MongoDB
-        $result = MongoProfile::save($userId, $profileData);
+        // Don't touch photo field - it's handled separately
+        
+        // Save profile to MongoDB (preserve photo)
+        try {
+            require_once __DIR__ . '/../vendor/autoload.php';
+            $client = new MongoDB\Client("mongodb://localhost:27017");
+            $collection = $client->guvi_profiles->profiles;
+            
+            $profileData['updated_at'] = new MongoDB\BSON\UTCDateTime();
+            $result = $collection->updateOne(
+                ['user_id' => $userId],
+                ['$set' => $profileData],
+                ['upsert' => true]
+            );
+            $result = ($result->getModifiedCount() > 0 || $result->getUpsertedCount() > 0);
+        } catch (Exception $e) {
+            // Fallback
+            $result = MongoProfile::save($userId, $profileData);
+        }
         
         if ($result) {
             echo json_encode(['status' => 'success', 'message' => 'Profile updated successfully']);

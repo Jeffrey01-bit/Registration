@@ -1,56 +1,65 @@
 <?php
-session_start();
 header('Content-Type: application/json');
-
 require_once 'db.php';
+require_once 'redis_session.php';
+require_once 'mongodb.php';
 
-// Get user_id from session
-$user_id = $_SESSION['user_id'] ?? null;
-
-// If no session, try to get from current logged user (fallback)
-if (!$user_id) {
-    try {
-        $stmt = $pdo->prepare("SELECT id FROM guvi1users ORDER BY created_at DESC LIMIT 1");
-        $stmt->execute();
-        $user = $stmt->fetch();
-        $user_id = $user['id'] ?? null;
-    } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => 'User not found']);
-        exit;
-    }
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
+    exit;
 }
 
-if (!$user_id) {
-    echo json_encode(['status' => 'error', 'message' => 'Not logged in']);
+$token = $_POST['token'] ?? '';
+if (empty($token)) {
+    echo json_encode(['status' => 'error', 'message' => 'No session token']);
     exit;
 }
 
 try {
-    // Get user's photo to delete file
-    $stmt = $pdo->prepare("SELECT photo FROM guvi1users WHERE id = ?");
-    $stmt->execute([$user_id]);
-    $user = $stmt->fetch();
-    
-    // Delete photo file if exists
-    if ($user && $user['photo']) {
-        $file_path = '../' . $user['photo'];
-        if (file_exists($file_path)) {
-            unlink($file_path);
-        }
+    $session = RedisSession::get($token);
+    if (!$session || !isset($session['user_id'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid session']);
+        exit;
     }
     
-    // Delete user from database
+    $user_id = (int)$session['user_id'];
+    
+    // Delete user photos
+    $photo_files = glob(__DIR__ . "/../uploads/user_{$user_id}_*");
+    foreach ($photo_files as $file) {
+        @unlink($file);
+    }
+    
+    // Delete from MongoDB
+    try {
+        require_once __DIR__ . '/../vendor/autoload.php';
+        $client = new MongoDB\Client("mongodb://localhost:27017");
+        $collection = $client->guvi_profiles->profiles;
+        $collection->deleteOne(['user_id' => $user_id]);
+    } catch (Exception $e) {
+        // Continue even if MongoDB fails
+    }
+    
+    // Delete profile file fallback
+    $profile_file = __DIR__ . "/../profiles/profile_{$user_id}.json";
+    if (file_exists($profile_file)) {
+        @unlink($profile_file);
+    }
+    
+    // Delete from MySQL
     $stmt = $pdo->prepare("DELETE FROM guvi1users WHERE id = ?");
     $result = $stmt->execute([$user_id]);
     
     if ($result) {
-        // Clear session
-        session_destroy();
-        echo json_encode(['status' => 'success', 'message' => 'Account deleted']);
+        // Delete session
+        RedisSession::delete($token);
+        echo json_encode(['status' => 'success', 'message' => 'Account deleted completely']);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Delete failed']);
+        echo json_encode(['status' => 'error', 'message' => 'Failed to delete account']);
     }
+    
 } catch (Exception $e) {
+    error_log("Delete account error: " . $e->getMessage());
     echo json_encode(['status' => 'error', 'message' => 'Database error']);
 }
 ?>

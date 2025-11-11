@@ -1,22 +1,31 @@
 $(document).ready(function() {
+    // Set current date
+    const today = new Date();
+    const options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' };
+    $('#currentDate').text(today.toLocaleDateString('en-US', options));
+    
     // Load profile data
     const token = localStorage.getItem('session_token');
+    console.log('Session token:', token);
     if (!token) {
+        console.log('No session token found');
         window.location.href = 'login.html';
         return;
     }
     
-    $.get('php/db_profile.php', { token: token })
+    $.get('php/profile.php', { token: token })
     .done(function(data) {
+        console.log('Profile data received:', data);
         if (data.status === 'success') {
             const user = data.user;
+            console.log('User data:', user);
             
             // Display full name only if both first and last names exist
             const fullName = (user.first_name && user.last_name) ? `${user.first_name} ${user.last_name}` : '';
             
-            $('#welcomeText').text(fullName ? `Welcome, ${$('<div>').text(fullName).html()}` : `Welcome, ${$('<div>').text(user.username).html()}`);
-            $('#profileName').text($('<div>').text(fullName || user.username).html());
-            $('#profileEmail, #emailAddress').text($('<div>').text(user.email).html());
+            $('#welcomeText').text(fullName ? `Welcome, ${fullName}` : `Welcome, ${user.username}`);
+            $('#profileName').text(fullName || user.username);
+            $('#profileEmail, #emailAddress').text(user.email);
             
             // Fill form fields
             $('#userId').val(user.id);
@@ -38,19 +47,23 @@ $(document).ready(function() {
             $('.form-input, .form-select').prop('readonly', true).prop('disabled', true);
             $('.plus-icon').hide();
             
-            // Load profile picture or show initials
-            if (user.photo && user.photo.trim() !== '') {
-                const img = new Image();
-                img.onload = function() {
-                    $('#headerAvatar').html(`<img src="${$('<div>').text(user.photo).html()}" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`);
-                    $('#profileAvatar').html(`<img src="${$('<div>').text(user.photo).html()}" alt="Profile" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">`);
-                };
-                img.onerror = function() {
-                    showInitials(user.username);
-                };
-                img.src = user.photo;
-            } else {
-                showInitials(user.username);
+            // Load profile picture
+            loadUserPhoto(user.username);
+            
+            function loadUserPhoto(username) {
+                $.get('php/photo.php', { token: token })
+                .done(function(response) {
+                    if (response.status === 'success' && response.photo) {
+                        const photoUrl = response.photo;
+                        $('#headerAvatar').html(`<img src="${photoUrl}" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`);
+                        $('#profileAvatar').html(`<img src="${photoUrl}" alt="Profile" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">`);
+                    } else {
+                        showInitials(username);
+                    }
+                })
+                .fail(function() {
+                    showInitials(username);
+                });
             }
             
             function showInitials(username) {
@@ -58,9 +71,17 @@ $(document).ready(function() {
                 $('#headerAvatar').html(`<div style="width: 40px; height: 40px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">${initial}</div>`);
                 $('#profileAvatar').html(`<div style="width: 80px; height: 80px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px;">${initial}</div>`);
             }
+        } else {
+            console.error('Profile load failed:', data.message);
+            if (data.message === 'Invalid session') {
+                localStorage.removeItem('session_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            }
         }
     })
-    .fail(function() {
+    .fail(function(xhr, status, error) {
+        console.error('Profile request failed:', error, xhr.responseText);
         window.location.href = 'login.html';
     });
     
@@ -94,38 +115,53 @@ $(document).ready(function() {
                 zipCode: $('#zipCode').val()
             };
             
-            // Handle photo operations first
+            // Handle photo upload
             if (photoAction === 'upload' && selectedFile) {
                 const photoFormData = new FormData();
                 photoFormData.append('photo', selectedFile);
-                
                 photoFormData.append('token', localStorage.getItem('session_token'));
                 
                 $.ajax({
-                    url: 'php/upload_photo_mongo.php',
+                    url: 'php/photo.php',
                     method: 'POST',
                     data: photoFormData,
                     processData: false,
                     contentType: false,
                     success: function(response) {
-                        console.log('Upload response:', response);
+                        console.log('Photo upload response:', response);
                         if (response.status === 'success') {
-                            $('#headerAvatar').html(`<img src="${response.photo_path}" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`);
-                        } else {
-                            console.error('Upload failed:', response.message);
+                            const photoPath = response.photo_path;
+                            $('#headerAvatar').html(`<img src="${photoPath}" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`);
+                            $('#profileAvatar').html(`<img src="${photoPath}" alt="Profile" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">`);
+                            
+                            if (response.mongo_saved) {
+                                console.log('✅ Photo saved to MongoDB');
+                            } else {
+                                console.log('⚠️ Photo saved to file only');
+                            }
                         }
                         updateProfile();
                     },
-                    error: function(xhr, status, error) {
-                        console.error('Upload error:', error, xhr.responseText);
+                    error: function() {
                         updateProfile();
                     }
                 });
             } else if (photoAction === 'remove') {
-                $.post('php/remove_photo.php')
+                // Remove photo from database
+                $.post('php/photo.php', { 
+                    token: localStorage.getItem('session_token'),
+                    remove: true
+                })
+                .done(function(response) {
+                    console.log('Photo remove response:', response);
+                    if (response.mongo_removed) {
+                        console.log('✅ Photo removed from MongoDB');
+                    }
+                })
                 .always(function() {
                     const initial = $('#username').val().charAt(0).toUpperCase();
                     $('#headerAvatar').html(`<div style="width: 40px; height: 40px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">${initial}</div>`);
+                    $('#profileAvatar').html(`<div style="width: 80px; height: 80px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px;">${initial}</div>`);
                     updateProfile();
                 });
             } else {
@@ -141,8 +177,10 @@ $(document).ready(function() {
                         // Update display names only if both first and last names are provided
                         const fullName = (formData.firstName && formData.lastName) ? `${formData.firstName} ${formData.lastName}` : '';
                         
-                        $('#welcomeText').text(fullName ? `Welcome, ${fullName}` : `Welcome, ${formData.username}`);
-                        $('#profileName').text(fullName || formData.username);
+                        const escapedFullName = $('<div>').text(fullName).html();
+                        const escapedUsername = $('<div>').text(formData.username).html();
+                        $('#welcomeText').text(fullName ? `Welcome, ${escapedFullName}` : `Welcome, ${escapedUsername}`);
+                        $('#profileName').text(escapedFullName || escapedUsername);
                     }
                 })
                 .always(function() {
@@ -216,15 +254,22 @@ $(document).ready(function() {
     });
     
     $('#confirmDelete').click(function() {
-        $.post('php/delete_account.php')
+        $.post('php/delete_account.php', {
+            token: localStorage.getItem('session_token')
+        })
         .done(function(response) {
+            console.log('Delete response:', response);
             if (response.status === 'success') {
+                localStorage.removeItem('session_token');
+                localStorage.removeItem('user');
                 $('#deleteModal').hide();
                 $('body').css('overflow', 'auto');
                 window.location.href = 'login.html';
             }
         })
         .always(function() {
+            localStorage.removeItem('session_token');
+            localStorage.removeItem('user');
             $('#deleteModal').hide();
             $('body').css('overflow', 'auto');
             window.location.href = 'login.html';

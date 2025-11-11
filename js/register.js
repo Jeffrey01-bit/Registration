@@ -35,6 +35,9 @@ $(document).ready(function () {
       return;
     }
 
+    // Generate CSRF token
+    const csrfToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    
     $.ajax({
       url: "php/register.php",
       method: "POST",
@@ -43,6 +46,7 @@ $(document).ready(function () {
         username: username,
         email: email,
         password: password,
+        csrf_token: csrfToken,
       },
       success: function (response) {
         if (response.status === "success") {
@@ -65,7 +69,8 @@ $(document).ready(function () {
   });
 
   function showMessage(message, type) {
-    $("#message").html(`<div class="alert alert-${type}">${message}</div>`);
+    const escapedMessage = $('<div>').text(message).html();
+    $("#message").html(`<div class="alert alert-${type}">${escapedMessage}</div>`);
   }
 
   function isValidEmail(email) {

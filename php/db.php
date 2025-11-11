@@ -17,7 +17,16 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $e) {
     error_log("Database connection failed: " . $e->getMessage());
-    http_response_code(500);
-    die(json_encode(['success' => false, 'message' => 'Database connection failed']));
+    
+    // Check if this is an API request
+    if (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
+        http_response_code(500);
+        header('Content-Type: application/json');
+        die(json_encode(['success' => false, 'message' => 'Database connection failed']));
+    } else {
+        // For web pages, show a user-friendly error
+        http_response_code(500);
+        die('<h2>Database Connection Error</h2><p>Please check if XAMPP/MySQL is running and try again.</p><p><a href="setup_database.php">Setup Database</a></p>');
+    }
 }
 ?>
