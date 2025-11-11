@@ -30,10 +30,10 @@
                         <form id="loginForm" class="needs-validation" novalidate>
                             <div class="mb-3">
                                 <label for="email" class="form-label">
-                                    <i class="fas fa-envelope me-2"></i>Email Address
+                                    <i class="fas fa-user me-2"></i>Email or Username
                                 </label>
-                                <input type="email" class="form-control" id="email" name="email"
-                                    placeholder="Enter your email" autocomplete="email" required>
+                                <input type="text" class="form-control" id="email" name="email"
+                                    placeholder="Enter your email or username" autocomplete="username" required>
                             </div>
 
                             <div class="mb-3">
@@ -74,7 +74,7 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="js/login.js"></script>
+    <script src="js/login.js?v=2"></script>
     <script>
         $(document).ready(function () {
             // Show error messages from URL parameters
@@ -84,7 +84,7 @@
                 let message = '';
                 switch (error) {
                     case 'empty': message = 'All fields are required'; break;
-                    case 'invalid': message = 'Invalid email or password'; break;
+                    case 'invalid': message = 'Invalid email/username or password'; break;
                     case 'db': message = 'Database connection error'; break;
                     default: message = 'Login failed';
                 }

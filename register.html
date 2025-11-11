@@ -41,9 +41,51 @@
                                 <label for="email" class="form-label">
                                     <i class="fas fa-envelope me-2"></i>Email Address
                                 </label>
-                                <input type="email" class="form-control" id="email" placeholder="Enter your email"
-                                    required>
+                                <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+                                <div class="mt-1">
+                                    <a href="#" id="sendOtpBtn" style="font-size: 11px; color: #8b5cf6; text-decoration: underline;">Send OTP</a>
+                                    <span id="timer" style="font-size: 11px; color: #6b7280; margin-left: 10px;"></span>
+                                    <a href="#" id="resendOtpBtn" style="font-size: 11px; color: #8b5cf6; text-decoration: underline; margin-left: 10px; display: none;">Resend OTP</a>
+                                </div>
+                                <div id="emailStatus" class="mt-1"></div>
                             </div>
+                            
+                            <div class="mb-3" id="otpSection" style="display: none;">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span style="font-size: 11px; color: #8b5cf6;">Enter OTP</span>
+                                    <div class="d-flex gap-1">
+                                        <input type="text" class="otp-input" maxlength="1" data-index="0">
+                                        <input type="text" class="otp-input" maxlength="1" data-index="1">
+                                        <input type="text" class="otp-input" maxlength="1" data-index="2">
+                                        <input type="text" class="otp-input" maxlength="1" data-index="3">
+                                        <input type="text" class="otp-input" maxlength="1" data-index="4">
+                                        <input type="text" class="otp-input" maxlength="1" data-index="5">
+                                    </div>
+                                    <a href="#" id="verifyOtpBtn" style="font-size: 11px; color: #8b5cf6; text-decoration: underline;">Verify</a>
+                                </div>
+                                <div id="otpStatus" class="mt-1"></div>
+                            </div>
+                            
+                            <style>
+                            .otp-input {
+                                width: 25px;
+                                height: 25px;
+                                text-align: center;
+                                font-size: 12px;
+                                border: none;
+                                border-bottom: 1px solid #8b5cf6;
+                                background: transparent;
+                                color: #8b5cf6;
+                                outline: none;
+                            }
+                            .otp-input:focus {
+                                border-bottom-color: #7c3aed;
+                            }
+                            .otp-input.filled {
+                                border-bottom-color: #22c55e;
+                                color: #22c55e;
+                            }
+                            </style>
 
                             <div class="mb-3">
                                 <label for="password" class="form-label">
@@ -58,9 +100,10 @@
                             </div>
 
                             <div class="d-grid mb-3">
-                                <button type="submit" id="registerBtn" class="btn btn-success">
+                                <button type="submit" id="registerBtn" class="btn btn-success" disabled>
                                     <i class="fas fa-user-plus me-2"></i>Create Account
                                 </button>
+                                <small class="text-muted mt-1">Please verify your email to enable registration</small>
                             </div>
                         </form>
 

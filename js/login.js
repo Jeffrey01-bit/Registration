@@ -22,9 +22,9 @@ $(document).ready(function() {
             return false;
         }
         
-        // Basic email validation
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showMessage('Please enter a valid email address', 'danger');
+        // Allow both email and username (no strict email validation)
+        if (email.length < 3) {
+            showMessage('Please enter a valid email or username', 'danger');
             return false;
         }
         
